@@ -7,6 +7,7 @@ Examensarbete i Python grund.
 - Omvandlar ett årtal till årtionde, exempelvis 1991 till 1990. Enter ger 1990.
 - Hämtar råa filmträffar från Wikidata med requests och hanterar nätverksfel.
 - Bygger enkla filmfält och behåller den första träffen per titel med en mängd (set).
+- Klassificerar filmer efter hur många viktiga fält som är ifyllda.
 
 ## Köra programmet
 

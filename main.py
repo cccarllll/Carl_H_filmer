@@ -83,7 +83,26 @@ def get_swedish_movies_by_decade(decade):
     return data["results"]["bindings"]
 
 
+# Kontrollerar hur mycket av den viktigaste informationen som finns om en film.
+def get_information_level(movie):
+    # En lista med nycklarna till de fyra fält som används för informationsnivån.
+    required_fields = ["directors", "genres", "duration", "imdb_id"]
+    # bool blir False för tom text och True för innehåll. sum räknar True som 1.
+    filled_fields = sum(bool(movie[field]) for field in required_fields)
+
+    # len ger antalet fält. == jämför värden; = används för att tilldela ett värde.
+    if filled_fields == len(required_fields):
+        return "Fullständig"
+    # Kontrolleras om föregående villkor var falskt. Här finns minst ett ifyllt fält.
+    elif filled_fields > 0:
+        return "Delvis"
+
+    # Denna rad nås bara om inget av de tidigare villkoren redan har returnerat.
+    return "Grundläggande"
+
+
 # Tar bort filmer med samma titel och bygger en ren lista från Wikidatas råa API-svar.
+# Originaltiteln används när den finns och varje film får en informationsnivå.
 def clean_movies(movies):
     # En tom lista som ska innehålla de rensade filmerna.
     cleaned_movies = []
@@ -120,6 +139,8 @@ def clean_movies(movies):
                 "description": movie.get("description", {}).get("value", ""),
                 "original_languages": movie.get("originalLanguages", {}).get("value", ""),
             }
+            # Anropar funktionen och sparar dess resultat under en ny nyckel.
+            cleaned_movie["information_level"] = get_information_level(cleaned_movie)
 
             # Lägger den rensade filmen sist i listan.
             cleaned_movies.append(cleaned_movie)
