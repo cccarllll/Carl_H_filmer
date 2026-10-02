@@ -197,13 +197,67 @@ def save_movies(movies, decade, imdb_matched):
     print(f"\nFilmerna sparades i {csv_filename} och {json_filename}")
 
 
+# Läser den sparade JSON-filen när data för årtiondet redan finns lokalt.
+def load_movies(decade):
+    filename = f"data/{decade}.json"
+
+    # Använder medföljande Wikidata-exempel om ingen lokal arbetsfil finns.
+    if not os.path.exists(filename):
+        filename = f"examples/{decade}.json"
+
+    # Läser JSON-objektet som innehåller markeringen och filmlistan.
+    try:
+        with open(filename, encoding="utf-8") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Fel: filen {filename} saknas. Lägg den i data-mappen och försök igen.")
+        raise SystemExit(1)
+    except (json.JSONDecodeError, UnicodeError):
+        print(f"Fel: {filename} innehåller inte läsbar JSON. Kontrollera filen.")
+        raise SystemExit(1)
+    except OSError as error:
+        print(f"Fel: {filename} kunde inte läsas. {error}")
+        raise SystemExit(1)
+
+    # Accepterar bara vårt nya format med en boolesk markering och en lista.
+    if (
+        not isinstance(data, dict)
+        or not isinstance(data.get("imdb_matched"), bool)
+        or not isinstance(data.get("movies"), list)
+    ):
+        print(f"Fel: {filename} måste innehålla imdb_matched och movies i det nya formatet.")
+        raise SystemExit(1)
+
+    movies = data["movies"]
+    # Kontrollerar att listan innehåller film-dictionaries med titel och år.
+    if any(
+        not isinstance(movie, dict) or not {"title", "year"}.issubset(movie)
+        for movie in movies
+    ):
+        print(f"Fel: {filename} måste innehålla en filmlista med titel och år.")
+        raise SystemExit(1)
+
+    # Två returvärden tas emot som movies, imdb_matched i huvudprogrammet.
+    return movies, data["imdb_matched"]
+
+
+# Kontrollerar om lokal filmdata eller medföljande exempeldata finns.
+def movie_data_exists(decade):
+    # Returnerar True om sökvägen finns, annars False. f-strängen sätter in årtiondet.
+    return os.path.exists(f"data/{decade}.json") or os.path.exists(f"examples/{decade}.json")
+
+
 def main():
     os.makedirs("data", exist_ok=True)
     decade = get_decade_from_user()
-    raw_movies = get_swedish_movies_by_decade(decade)
-    movies = clean_movies(raw_movies)
-    imdb_matched = False
-    save_movies(movies, decade, imdb_matched)
+    if movie_data_exists(decade):
+        print("Läser sparad filmdata...")
+        movies, imdb_matched = load_movies(decade)
+    else:
+        raw_movies = get_swedish_movies_by_decade(decade)
+        movies = clean_movies(raw_movies)
+        imdb_matched = False
+        save_movies(movies, decade, imdb_matched)
     print(f"Antal filmer: {len(movies)}")
 
 
