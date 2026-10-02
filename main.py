@@ -1,5 +1,7 @@
 import os
 import requests
+import json
+import csv
 
 
 # Frågar efter ett årtal och räknar fram årtiondets första år.
@@ -152,11 +154,56 @@ def clean_movies(movies):
     return cleaned_movies
 
 
+# Sparar den rensade filmlistan i både CSV- och JSON-format.
+# CSV kan öppnas i exempelvis Excel och JSON kan användas direkt av programmet.
+def save_movies(movies, decade, imdb_matched):
+    csv_filename = f"data/{decade}.csv"
+    json_filename = f"data/{decade}.json"
+
+    # w skapar eller skriver över filen. newline undviker extra tomrader i CSV.
+    with open(csv_filename, "w", encoding="utf-8", newline="") as file:
+        # Skriver dictionaries som tabellrader med kolumnerna som anges i fieldnames.
+        writer = csv.DictWriter(
+            file,
+            # Namnen bestämmer både vilka fält CSV-filen får och deras kolumnordning.
+            fieldnames=[
+                "year",
+                "title",
+                "original_title",
+                "wikidata_title",
+                "original_languages",
+                "directors",
+                "genres",
+                "duration",
+                "imdb_id",
+                "imdb_rating",
+                "imdb_votes",
+                "description",
+                "information_level",
+            ],
+        )
+        # Skriver kolumnnamnen på tabellens första rad.
+        writer.writeheader()
+        # Skriver en rad för varje film i listan.
+        writer.writerows(movies)
+
+    # Öppnar JSON-filen för skrivning. En befintlig fil med samma namn skrivs över.
+    with open(json_filename, "w", encoding="utf-8") as file:
+        # Sparar både filmlistan och om IMDb-matchningen har körts.
+        # Python använder True/False; i JSON skrivs de som true/false.
+        data = {"imdb_matched": imdb_matched, "movies": movies}
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+    print(f"\nFilmerna sparades i {csv_filename} och {json_filename}")
+
+
 def main():
     os.makedirs("data", exist_ok=True)
     decade = get_decade_from_user()
     raw_movies = get_swedish_movies_by_decade(decade)
     movies = clean_movies(raw_movies)
+    imdb_matched = False
+    save_movies(movies, decade, imdb_matched)
     print(f"Antal filmer: {len(movies)}")
 
 

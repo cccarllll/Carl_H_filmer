@@ -8,6 +8,7 @@ Examensarbete i Python grund.
 - Hämtar råa filmträffar från Wikidata med requests och hanterar nätverksfel.
 - Bygger enkla filmfält och behåller den första träffen per titel med en mängd (set).
 - Klassificerar filmer efter hur många viktiga fält som är ifyllda.
+- Sparar den rensade filmlistan som JSON och CSV i data-mappen.
 
 ## Köra programmet
 
