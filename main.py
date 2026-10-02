@@ -3,6 +3,7 @@ import requests
 import json
 import csv
 import gzip
+import matplotlib.pyplot as plt
 
 
 # Basklass för en film med information som alla filmer har.
@@ -37,19 +38,32 @@ class RatedFilm(Film):
         return self.imdb_votes >= 500
 
 
-# Frågar efter ett årtal och räknar fram årtiondets första år.
+# Frågar användaren efter ett giltigt årtionde mellan 1920 och 2020.
+# Om användaren bara trycker Enter används 1990 som standard för att underlätta testning.
+# Returnerar årtiondet direkt, till exempel 1990.
 def get_decade_from_user():
+    # Upprepar blocket tills break avslutar loopen eller return lämnar funktionen.
     while True:
-        year = input("Ange ett årtal mellan 1920 och 2029 (Enter för 1990): ").strip()
-        if year == "":
-            return 1990
-        if year.isdigit():
-            year = int(year)
-            if 1920 <= year <= 2029:
-                # Heltalsdivision tar bort entalet; gånger tio ger årtiondet.
-                return year // 10 * 10
-        print("Fel: ange ett årtal mellan 1920 och 2029.")
+        # input ger text. strip tar bort mellanslag i början och slutet.
+        decade = input("Ange ett årtionde mellan 1920 och 2020 (Enter för 1990): ").strip()
 
+        # Tom text betyder att användaren tryckte Enter utan att skriva ett värde.
+        if decade == "":
+            # Returnerar ett heltal som standardvärde; loopen fortsätter inte efter return.
+            return 1990
+
+        # Kontrollerar om texten består av siffror innan omvandlingen till heltal.
+        if decade.isdigit():
+            # Omvandlar texten till ett heltal så att den kan jämföras och användas i beräkningar.
+            decade = int(decade)
+
+            # Kontrollerar intervallet och att resten vid division med 10 är noll.
+            # Därför godkänns 1990 men inte 1995.
+            if 1920 <= decade <= 2020 and decade % 10 == 0:
+                # Lämnar tillbaka det godkända årtiondet och avslutar funktionen.
+                return decade
+
+        print("Fel: ange ett årtionde mellan 1920 och 2020, till exempel 1990.")
 
 
 # Hämtar svenska filmer från Wikidata för hela det valda årtiondet.
@@ -397,6 +411,119 @@ def print_top_rated_movies(movies):
         )
 
 
+# Skriver ut filmens årtal, titel, IMDb-betyg och antal IMDb-röster i terminalen.
+# Saknas betyg eller röster i IMDb-filen visas texten Saknas i stället.
+def print_movies(movies):
+    # Går igenom listan. movie syftar på en films dictionary under varje varv.
+    for movie in movies:
+        title = movie["title"]
+        # Hakparenteser läser värdet för en nyckel. Om nyckeln saknas uppstår KeyError.
+        year = movie["year"]
+        # get undviker fel om nyckeln saknas. or ger reservtext om värdet är tomt.
+        rating = movie.get("imdb_rating") or "Saknas"
+        # Samma reservtext används när antal röster saknas eller är tomt.
+        votes = movie.get("imdb_votes") or "Saknas"
+
+        print(f"{year} - {title} | IMDb: {rating} | Röster: {votes}")
+
+
+# Räknar hur många filmer som finns för varje år i den aktuella filmlistan.
+# Resultatet skrivs ut efter listan så att det blir lätt att se fördelningen per år.
+def print_movie_count_by_year(movies):
+    # {} skapar en tom dictionary. År blir nyckel och antal filmer blir värde.
+    movies_per_year = {}
+
+    # Går igenom listan. movie syftar på en films dictionary under varje varv.
+    for movie in movies:
+        # Hakparenteser läser värdet för en nyckel. Om nyckeln saknas uppstår KeyError.
+        year = movie["year"]
+
+        # Kontrollerar om året ännu saknas bland dictionaryns nycklar.
+        if year not in movies_per_year:
+            # Startar räknaren på noll första gången året förekommer.
+            movies_per_year[year] = 0
+
+        # Ökar årets räknare med ett. += 1 betyder lägg till 1 till det gamla värdet.
+        movies_per_year[year] += 1
+
+    print("\nAntal filmer per år:")
+
+    # sorted ger en sorterad lista med dictionaryns nycklar, alltså åren.
+    for year in sorted(movies_per_year):
+        print(f"{year}: {movies_per_year[year]} filmer")
+
+
+# Skapar ett stapeldiagram som visar hur många filmer som finns för varje år.
+def show_movie_chart(movies, decade):
+    # {} skapar en tom dictionary. År blir nyckel och antal filmer blir värde.
+    movies_per_year = {}
+
+    # Går igenom listan. movie syftar på en films dictionary under varje varv.
+    for movie in movies:
+        # Hakparenteser läser värdet för en nyckel. Om nyckeln saknas uppstår KeyError.
+        year = movie["year"]
+
+        # Kontrollerar om året ännu saknas bland dictionaryns nycklar.
+        if year not in movies_per_year:
+            # Startar räknaren på noll första gången året förekommer.
+            movies_per_year[year] = 0
+
+        # Ökar årets räknare med ett. += 1 betyder lägg till 1 till det gamla värdet.
+        movies_per_year[year] += 1
+
+    # Sorterar åren så att diagrammets staplar kommer i tidsordning.
+    years = sorted(movies_per_year)
+    # En list comprehension bygger antalslistan i samma ordning som åren.
+    number_of_movies = [movies_per_year[year] for year in years]
+
+    # Ritar en stapel per år. Listan med antal bestämmer staplarnas höjd.
+    # En ny figur gör att upprepade menyval inte ritar ovanpå gamla staplar.
+    plt.figure()
+    plt.bar(years, number_of_movies)
+    plt.title(f"Antal svenska filmer per år, {decade}-talet")
+    # Sätter etiketten under diagrammets vågräta axel.
+    plt.xlabel("År")
+    # Sätter etiketten vid diagrammets lodräta axel.
+    plt.ylabel("Antal filmer")
+    # Visar det färdiga diagrammet.
+    plt.show()
+
+
+# Visar programmets enkla meny tills användaren väljer att avsluta.
+# Val 1 visar filmlistan, val 2 räknar filmer per år, val 3 visar en topplista
+# och val 4 visar ett stapeldiagram.
+def show_menu(movies, decade):
+    # Upprepar blocket tills break avslutar loopen eller return lämnar funktionen.
+    while True:
+        # print visar text för användaren; den lämnar inte tillbaka ett menyval.
+        print("\nMeny")
+        print("1. Visa alla filmer")
+        print("2. Visa antal filmer per år")
+        print("3. Visa topplista efter IMDb-betyg")
+        print("4. Visa stapeldiagram över antal filmer per år")
+        print("0. Avsluta")
+
+        # input väntar på användaren och returnerar svaret som text.
+        choice = input("Välj ett alternativ: ")
+
+        if choice == "1":
+            print(f"\n{decade}-talet")
+            print_movies(movies)
+        elif choice == "2":
+            print_movie_count_by_year(movies)
+        elif choice == "3":
+            print_top_rated_movies(movies)
+        elif choice == "4":
+            show_movie_chart(movies, decade)
+        elif choice == "0":
+            print("Programmet avslutas.")
+            # Avslutar den närmaste loopen.
+            break
+        # Körs när de föregående villkoren i samma if/elif-kedja inte stämde.
+        else:
+            print("Fel: välj 1, 2, 3, 4 eller 0.")
+
+
 def main():
     os.makedirs("data", exist_ok=True)
     decade = get_decade_from_user()
@@ -413,7 +540,7 @@ def main():
         add_imdb_ratings(movies, imdb_filename)
         imdb_matched = True
         save_movies(movies, decade, imdb_matched)
-    print_top_rated_movies(movies)
+    show_menu(movies, decade)
 
 
 if __name__ == "__main__":

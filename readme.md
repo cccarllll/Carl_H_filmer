@@ -12,6 +12,7 @@ Examensarbete i Python grund.
 - Läser lokal JSON före nya nätanrop och hanterar fel vid filinläsning.
 - Hämtar eller återanvänder IMDb-filen och matchar betyg och röster med IMDb-id.
 - Använder Film och RatedFilm med arv för en topplista med minst 500 röster.
+- Visar meny och diagram. Inmatningen kräver nu ett jämnt årtionde; 1991 ger en ny fråga.
 
 ## Köra programmet
 
