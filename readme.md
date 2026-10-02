@@ -11,6 +11,7 @@ Examensarbete i Python grund.
 - Sparar den rensade filmlistan som JSON och CSV i data-mappen.
 - Läser lokal JSON före nya nätanrop och hanterar fel vid filinläsning.
 - Hämtar eller återanvänder IMDb-filen och matchar betyg och röster med IMDb-id.
+- Använder Film och RatedFilm med arv för en topplista med minst 500 röster.
 
 ## Köra programmet
 

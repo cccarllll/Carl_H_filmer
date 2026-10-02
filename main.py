@@ -5,6 +5,38 @@ import csv
 import gzip
 
 
+# Basklass för en film med information som alla filmer har.
+class Film:
+    # __init__ körs när objektet skapas. self syftar på just det objektet.
+    def __init__(self, title, year):
+        # Sparar parametern title som ett attribut i objektet.
+        self.title = title
+        # Sparar parametern year som ett attribut i objektet.
+        self.year = year
+
+    # Returnerar filmens år och titel i samma format som används vid utskrift.
+    def get_title_with_year(self):
+        # f-strängen sätter in attributens värden i texten. return lämnar tillbaka texten.
+        return f"{self.year} - {self.title}"
+
+
+# Barnklass som ärver titel och år från Film.
+# Den lägger till IMDb-betyg och antal röster för filmer som kan vara med i topplistan.
+class RatedFilm(Film):
+    def __init__(self, title, year, imdb_rating, imdb_votes):
+        # Anropar Films konstruktor för att spara titel och år i samma objekt.
+        super().__init__(title, year)
+        # float omvandlar exempelvis texten '7.5' till decimaltalet 7.5.
+        self.imdb_rating = float(imdb_rating)
+        # int omvandlar exempelvis texten '600' till heltalet 600.
+        self.imdb_votes = int(imdb_votes)
+
+    # Kontrollerar om filmen har tillräckligt många röster för topplistan.
+    def has_enough_votes(self):
+        # Jämförelsen ger True vid minst 500 röster, annars False.
+        return self.imdb_votes >= 500
+
+
 # Frågar efter ett årtal och räknar fram årtiondets första år.
 def get_decade_from_user():
     while True:
@@ -320,6 +352,51 @@ def add_imdb_ratings(movies, filename):
     return ratings_updated
 
 
+# Returnerar IMDb-betyget som används när RatedFilm-objekt ska sorteras.
+def get_imdb_rating(movie):
+    # Här är movie ett RatedFilm-objekt, så attributet läses med punktnotation.
+    return movie.imdb_rating
+
+
+# Sorterar filmer med IMDb-betyg från högst till lägst och visar de tio första.
+# En film behöver minst 500 IMDb-röster för att vara med, så att ett fåtal röster
+# inte får för stor påverkan på topplistan.
+def print_top_rated_movies(movies):
+    # En lista för RatedFilm-objekt som klarar topplistans krav.
+    rated_movies = []
+
+    # Går igenom listan. movie syftar på en films dictionary under varje varv.
+    for movie in movies:
+        # and kräver att både betyg och röster har ett värde.
+        if movie.get("imdb_rating") and movie.get("imdb_votes"):
+            # Skapar ett objekt från filmens dictionary. Konstruktorn omvandlar betyg och röster.
+            rated_movie = RatedFilm(
+                movie["title"],
+                movie["year"],
+                movie["imdb_rating"],
+                movie["imdb_votes"],
+            )
+
+            # Anropar objektets metod som kontrollerar gränsen på 500 röster.
+            if rated_movie.has_enough_votes():
+                # Lägger till objektet i listan över godkända filmer.
+                rated_movies.append(rated_movie)
+
+    # key anger funktionen som hämtar sorteringsvärdet för varje objekt.
+    # Inga parenteser efter funktionsnamnet: sort anropar den. reverse=True ger högst först.
+    rated_movies.sort(key=get_imdb_rating, reverse=True)
+
+    print("\nTopplista: högst IMDb-betyg (minst 500 röster)")
+
+    # [:10] väljer högst tio filmer. enumerate ger både platsnummer och objekt.
+    # start=1 gör att numreringen börjar på 1 i stället för 0.
+    for position, movie in enumerate(rated_movies[:10], start=1):
+        print(
+            f"{position}. {movie.get_title_with_year()} | "
+            f"IMDb: {movie.imdb_rating} | Röster: {movie.imdb_votes}"
+        )
+
+
 def main():
     os.makedirs("data", exist_ok=True)
     decade = get_decade_from_user()
@@ -336,7 +413,7 @@ def main():
         add_imdb_ratings(movies, imdb_filename)
         imdb_matched = True
         save_movies(movies, decade, imdb_matched)
-    print(f"Antal filmer: {len(movies)}")
+    print_top_rated_movies(movies)
 
 
 if __name__ == "__main__":
