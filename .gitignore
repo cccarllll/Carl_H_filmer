@@ -1,0 +1,13 @@
+.venv/
+.venv_ssh/
+.vscode/
+1.bat
+__pycache__/
+*.pyc
+*.code-workspace
+data/
+output/
+explanation.txt
+tmp/
+Kursplanering*.xlsx
+Kursplanering*.zip
