@@ -2,7 +2,7 @@
 
 Examensarbete i Python grund. Programmet hämtar filmer med svenskt ursprung från ett valt årtionde, lägger till IMDb-betyg och sparar resultatet lokalt.
 
-GitHub: [python_grund_carl_h](https://github.com/cccarllll/python_grund_carl_h)
+GitHub: [Carl_H_filmer](https://github.com/cccarllll/Carl_H_filmer)
 
 ## Mål
 
@@ -15,6 +15,8 @@ Jag hämtar filminformation från Wikidata med `requests` och en SPARQL-fråga. 
 Klassen `Film` innehåller titel och år. Barnklassen `RatedFilm` lägger till betyg och antal röster. Menyn visar filmlistan, antal filmer per år, en topplista och ett stapeldiagram. Topplistan visar högst tio filmer med minst 500 röster.
 
 Jag använder standardbiblioteken `os`, `json`, `csv` och `gzip`, samt de externa biblioteken `requests` och `matplotlib`.
+
+Notebooken hämtar automatiskt `data/1990.json` från GitHub om filen saknas, så den behöver inte laddas upp separat i Colab. En befintlig datafil behålls. Internet behövs för att hämta exempeldata och IMDb-betyg första gången.
 
 ## Resultat
 
