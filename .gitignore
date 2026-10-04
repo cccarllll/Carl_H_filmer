@@ -5,9 +5,11 @@
 __pycache__/
 *.pyc
 *.code-workspace
-data/
+data/*
+!data/1990.json
 output/
 explanation.txt
 tmp/
+Examen_Carl_H_inlamning.zip
 Kursplanering*.xlsx
 Kursplanering*.zip

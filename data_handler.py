@@ -55,10 +55,6 @@ def save_movies(movies, decade, imdb_matched):
 def load_movies(decade):
     filename = f"data/{decade}.json"
 
-    # Använder medföljande Wikidata-exempel om ingen lokal arbetsfil finns.
-    if not os.path.exists(filename):
-        filename = f"examples/{decade}.json"
-
     # Läser JSON-objektet som innehåller markeringen och filmlistan.
     try:
         with open(filename, encoding="utf-8") as file:
@@ -95,7 +91,7 @@ def load_movies(decade):
     return movies, data["imdb_matched"]
 
 
-# Kontrollerar om lokal filmdata eller medföljande exempeldata finns.
+# Kontrollerar om filmdata finns i data-mappen.
 def movie_data_exists(decade):
     # Returnerar True om sökvägen finns, annars False. f-strängen sätter in årtiondet.
-    return os.path.exists(f"data/{decade}.json") or os.path.exists(f"examples/{decade}.json")
+    return os.path.exists(f"data/{decade}.json")
